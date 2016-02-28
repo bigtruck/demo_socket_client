@@ -58,9 +58,11 @@ Cdemo_socket_clientDlg::Cdemo_socket_clientDlg(CWnd* pParent /*=NULL*/)
 void Cdemo_socket_clientDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT1, m_CERecv);
+	DDX_Control(pDX, IDC_DataReceive, m_CERecv);
 	DDX_Control(pDX, IDC_EDIT2, m_CESend);
 	DDX_Control(pDX, IDC_Connect, m_CBuClient);
+	DDX_Control(pDX, IDC_IPADDRESS1, m_CIPAddr);
+	DDX_Control(pDX, IDC_EDIT_PORT, m_CEdPort);
 }
 
 BEGIN_MESSAGE_MAP(Cdemo_socket_clientDlg, CDialogEx)
@@ -104,6 +106,8 @@ BOOL Cdemo_socket_clientDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	m_CEdPort.SetWindowTextW(L"8000");
+	m_CIPAddr.SetWindowTextW(L"192.168.0.1");
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -191,7 +195,20 @@ void Cdemo_socket_clientDlg::OnBnClickedConnect()
 			return;
 		}
 	}
-	if (!pSock->Connect(_T("127.0.0.1"), 8000))    //连接服务器
+
+	WCHAR textbuff[128];
+	int port;
+	m_CEdPort.GetWindowTextW(textbuff, m_CEdPort.GetWindowTextLengthW() + 1);
+	port = _wtoi(textbuff);
+	if (port <1024 || port >65535)
+	{
+		AfxMessageBox(L"端口号为1024~65535");
+		return;
+	}
+	m_CIPAddr.GetWindowTextW(textbuff, m_CIPAddr.GetWindowTextLengthW() + 1);
+	AfxMessageBox(textbuff);
+	//if (!pSock->Connect(_T("127.0.0.1"), port))    //连接服务器
+	if (!pSock->Connect(textbuff, port))    //连接服务器
 	{
 		AfxMessageBox(_T("连接服务器失败！"));
 		return;
@@ -214,9 +231,13 @@ void Cdemo_socket_clientDlg::OnBnClickedSend()
 	m_CESend.GetWindowTextW(m_DataSend);
 	if (m_DataSend != "")
 	{
-		char* pBuff = new char[m_DataSend.GetLength() * 2];
-		memset(pBuff, 0, m_DataSend.GetLength() * 2);
-		WChar2MByte(m_DataSend.GetBuffer(0), pBuff, m_DataSend.GetLength() * 2);
-		pSock->SendMSG(pBuff, m_DataSend.GetLength() * 2);
+		char* pBuff = new char[m_DataSend.GetLength()*2 ];
+		memset(pBuff, 0, m_DataSend.GetLength()*2);
+		if (!WChar2MByte(m_DataSend.GetBuffer(0), pBuff, m_DataSend.GetLength()*2))
+		{
+			MessageBox(L"字符转换失败",L"错误",MB_OK | MB_ICONERROR);
+			return;
+		}
+		pSock->SendMSG(pBuff, m_DataSend.GetLength()*2);
 	}
 }

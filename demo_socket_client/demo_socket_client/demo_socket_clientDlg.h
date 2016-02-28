@@ -7,6 +7,7 @@
 
 #include "demo_socket_client.h"
 #include "ClientSocket.h"
+#include "afxcmn.h"
 
 class CClientSocket;
 
@@ -48,4 +49,6 @@ public:
 	afx_msg void OnBnClickedConnect();
 	afx_msg void OnBnClickedSend();
 	CButton m_CBuClient;
+	CIPAddressCtrl m_CIPAddr;
+	CEdit m_CEdPort;
 };
